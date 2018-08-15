@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Feature xmlns="http://schemas.microsoft.com/sharepoint/" Description="This feature provides you an interface to add events from a SharePoint calendar to your Outlook calendar downloading an ICS file" Id="c5348012-543b-4d1f-bd61-afeb4ffa9e00" ImageUrl="GenericFeature.gif" Scope="Site" Title="Add To Calendar">
+  <ElementManifests>
+    <ElementManifest Location="CalendarCA\Elements.xml" />
+    <ElementManifest Location="Style Library\Elements.xml" />
+    <ElementFile Location="Style Library\AddToCalendar\js\addToCalendar.js" />
+    <ElementFile Location="Style Library\AddToCalendar\images\outlook.png" />
+  </ElementManifests>
+</Feature>
