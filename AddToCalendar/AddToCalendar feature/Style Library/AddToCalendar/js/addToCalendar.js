@@ -1,6 +1,7 @@
 window.onload = function() {
 	
 	var siteURL;
+	var siteCollectionURL;
 	var listTemplate; // Calendar = 106
 	var itemID;
 	var icsLink;
@@ -13,8 +14,9 @@ window.onload = function() {
 	ExecuteOrDelayUntilScriptLoaded(getPageContextInfo, "core.js");
 	
 	function getPageContextInfo() {
-		siteURL         = _spPageContextInfo.webAbsoluteUrl;
-		listTemplate    = _spPageContextInfo.listBaseTemplate; // Calendar = 106
+		siteURL         	= _spPageContextInfo.webAbsoluteUrl;
+		listTemplate    	= _spPageContextInfo.listBaseTemplate; // Calendar = 106
+		siteCollectionURL 	= _spPageContextInfo.siteAbsoluteUrl;
 		itemID;
 		icsLink;
 		downloadHTML;
@@ -75,7 +77,7 @@ window.onload = function() {
 	        itemID = events[i].getElementsByTagName("a")[0].href.split('?ID=')[1];
 	        icsLink = siteURL+"/_vti_bin/owssvr.dll?CS=109&Cmd=Display&List="+listID+"&CacheControl=1&ID="+itemID+"&Using=event.ics";
 	        downloadHTML += '<a id="ics'+itemID+type+'" class="icsDownload" style="position: absolute; right: 2px; top:1px; display:none; z-index:1000;">';
-	        downloadHTML += '    <img style="width: 16px; height: 16px; margin-left: 4px;" src="https://handsonsharepoint.sharepoint.com/sites/contoso/Style Library/FabricUIBreadcrumb/images/outlook.png">';
+	        downloadHTML += '    <img style="width: 16px; height: 16px; margin-left: 4px;" src="'+siteCollectionURL+'/Style Library/AddToCalendar/images/outlook.png">';
 	        downloadHTML += '</a>';
 	    
 	        var temp = document.createElement('div');
