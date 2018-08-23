@@ -8,15 +8,29 @@ window.onload = function() {
 	var downloadHTML;
 	var detailInitialized;
 	var cssAppended;
+	var listID;
+	var SPVersion;
 	
 	//wait for _spPageContextInfo
 	
 	ExecuteOrDelayUntilScriptLoaded(getPageContextInfo, "core.js");
 	
 	function getPageContextInfo() {
+		if(_spPageContextInfo === undefined){
+			return;
+		}
+		
 		siteURL         	= _spPageContextInfo.webAbsoluteUrl;
 		listTemplate    	= _spPageContextInfo.listBaseTemplate; // Calendar = 106
 		siteCollectionURL 	= _spPageContextInfo.siteAbsoluteUrl;
+		if(_spPageContextInfo.listId === undefined){
+			SPVersion = "OnPrem";
+			listID  = _spPageContextInfo.pageListId;
+		}else{
+			SPVersion = "Online";
+			listID  = _spPageContextInfo.listId;
+		}
+		
 		itemID;
 		icsLink;
 		downloadHTML;
@@ -44,24 +58,17 @@ window.onload = function() {
 			var calendarElement = document.getElementsByClassName('ms-acal-rootdiv')[0];		
 
 			if(listTemplate == 106){
-			    var eventsM = document.getElementsByClassName('ms-acal-mdiv');
-			    var eventsS = document.getElementsByClassName('ms-acal-sdiv'); 	
-			    var eventsD = document.getElementsByClassName('ms-acal-ddiv'); 
-			    
-			    var listID  = _spPageContextInfo.listId;
-			    
-			    appedDownloadButtonToCalendar(eventsM, 'M', listID);
-			    appedDownloadButtonToCalendar(eventsS, 'S', listID);
-			    appedDownloadButtonToCalendar(eventsD, 'D', listID);
-			    if(!detailInitialized){
+			    appendDownloadLinks();
+			}else if(SPVersion == "OnPrem"){
+				if(document.getElementsByClassName('ms-acal-rootdiv').length != 0){
+					appendDownloadLinks();
+				}
+				if(!detailInitialized){
 			    	detailInitialized = true;
 			    	appedDownloadButtonToEventDetail('listFormToolBarTop',listID);
-			    }
-				if(!cssAppended){
-					cssAppended = true;
-					appendCSS();
-				}
-			}else{
+			    }		
+			}
+			else{
 				clearInterval(window.reInit);
 			}
 			
@@ -71,10 +78,32 @@ window.onload = function() {
 		}		
 	}
 	
+	function appendDownloadLinks(){
+		var eventsM = document.getElementsByClassName('ms-acal-mdiv');
+	    var eventsS = document.getElementsByClassName('ms-acal-sdiv'); 	
+	    var eventsD = document.getElementsByClassName('ms-acal-ddiv');
+	    
+	    appedDownloadButtonToCalendar(eventsM, 'M', listID);
+	    appedDownloadButtonToCalendar(eventsS, 'S', listID);
+	    appedDownloadButtonToCalendar(eventsD, 'D', listID);
+	    if(!detailInitialized){
+	    	detailInitialized = true;
+	    	appedDownloadButtonToEventDetail('listFormToolBarTop',listID);
+	    }
+		if(!cssAppended){
+			cssAppended = true;
+			appendCSS();
+		}
+	}
+	
 	function appedDownloadButtonToCalendar(events,type,listID){
 	    for (var i=0; i<events.length; i++){
 	        downloadHTML = '';
 	        itemID = events[i].getElementsByTagName("a")[0].href.split('?ID=')[1];
+	        if(SPVersion == "OnPrem"){
+	        	events[i].getElementsByTagName("a")[0].href = events[i].getElementsByTagName("a")[0].href + "&hosics"
+	        }
+	        events[i].getElementsByTagName("a")[0].href.split('?ID=')[1];
 	        icsLink = siteURL+"/_vti_bin/owssvr.dll?CS=109&Cmd=Display&List="+listID+"&CacheControl=1&ID="+itemID+"&Using=event.ics";
 	        downloadHTML += '<a id="ics'+itemID+type+'" class="icsDownload" style="position: absolute; right: 2px; top:1px; display:none; z-index:1000;">';
 	        downloadHTML += '    <img style="width: 16px; height: 16px; margin-left: 4px;" src="'+siteCollectionURL+'/Style Library/AddToCalendar/images/outlook.png">';
@@ -93,27 +122,49 @@ window.onload = function() {
 	
 	function appedDownloadButtonToEventDetail(id,listID){
 		clearInterval(window.reInit); 
-		if (document.getElementById(id) === null){
-			return;
-		}else{ 
-			itemID = document.location.href.split('ID=')[1].split('&')[0];
-		    icsLink = siteURL+"/_vti_bin/owssvr.dll?CS=109&Cmd=Display&List="+listID+"&CacheControl=1&ID="+itemID+"&Using=event.ics";
-		    
-		    downloadHTML = '';
-			downloadHTML += '	<td nowrap="true" valign="top" width="113px" class="ms-formlabel">';
-			downloadHTML += '		<span class="ms-h3 ms-standardheader">';
-			downloadHTML += '			Add To Calendar';
-			downloadHTML += '		</span>';
-			downloadHTML += '	</td>';
-			downloadHTML += '	<td valign="top" class="ms-formbody" width="350px">';
-			downloadHTML += '		<a href="'+icsLink+'">Download ICS</a>';				
-			downloadHTML += '	</td>';			 
-		    
-	        var temp = document.createElement('tr');
-	        temp.innerHTML = downloadHTML;
-	        var table = document.getElementsByClassName('ms-formtable')[0];
-			table.tBodies[0].appendChild(temp);			
-		}	
+		if(SPVersion == "OnPrem"){
+	    	if(document.location.href.indexOf("&hosics") != -1){
+	    		itemID = document.location.href.split('ID=')[1].split('&')[0];
+			    icsLink = siteURL+"/_vti_bin/owssvr.dll?CS=109&Cmd=Display&List="+listID+"&CacheControl=1&ID="+itemID+"&Using=event.ics";
+			    
+			    downloadHTML = '';
+				downloadHTML += '	<td nowrap="true" valign="top" width="113px" class="ms-formlabel">';
+				downloadHTML += '		<span class="ms-h3 ms-standardheader">';
+				downloadHTML += '			Add To Calendar';
+				downloadHTML += '		</span>';
+				downloadHTML += '	</td>';
+				downloadHTML += '	<td valign="top" class="ms-formbody" width="350px">';
+				downloadHTML += '		<a href="'+icsLink+'">Download ICS</a>';				
+				downloadHTML += '	</td>';			 
+			    
+		        var temp = document.createElement('tr');
+		        temp.innerHTML = downloadHTML;
+		        var table = document.getElementsByClassName('ms-formtable')[0];
+				table.tBodies[0].appendChild(temp);		
+	    	}
+	    }else if (SPVersion == "Online"){
+	    	if (document.getElementById(id) === null){
+				return;
+			}else{ 
+				itemID = document.location.href.split('ID=')[1].split('&')[0];
+			    icsLink = siteURL+"/_vti_bin/owssvr.dll?CS=109&Cmd=Display&List="+listID+"&CacheControl=1&ID="+itemID+"&Using=event.ics";
+			    
+			    downloadHTML = '';
+				downloadHTML += '	<td nowrap="true" valign="top" width="113px" class="ms-formlabel">';
+				downloadHTML += '		<span class="ms-h3 ms-standardheader">';
+				downloadHTML += '			Add To Calendar';
+				downloadHTML += '		</span>';
+				downloadHTML += '	</td>';
+				downloadHTML += '	<td valign="top" class="ms-formbody" width="350px">';
+				downloadHTML += '		<a href="'+icsLink+'">Download ICS</a>';				
+				downloadHTML += '	</td>';			 
+			    
+		        var temp = document.createElement('tr');
+		        temp.innerHTML = downloadHTML;
+		        var table = document.getElementsByClassName('ms-formtable')[0];
+				table.tBodies[0].appendChild(temp);			
+			}
+	    }			
 	}
 
 	
